@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Gincana - Controle de Pontuação</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f2f2f2;
+        text-align: center;
+        padding: 20px;
+      }
+
+      h1 {
+        color: #333;
+        text-decoration: underline;
+      }
+
+      .container {
+        display: flex;
+        justify-content: center;
+        gap: 50px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+      }
+
+      .team {
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        width: 320px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .team h2 {
+        margin-bottom: 5px;
+      }
+
+      .score {
+        font-size: 40px;
+        color: #007bff;
+        margin: 10px 0;
+      }
+
+      .pergunta {
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      .buttons {
+        margin: 10px 0;
+      }
+
+      .buttons button {
+        margin: 5px;
+        padding: 10px 15px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+
+      .history {
+        text-align: left;
+        margin-top: 15px;
+        max-height: 150px;
+        overflow-y: auto;
+        background: #f9f9f9;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+
+      .reset-btn {
+        margin-top: 30px;
+        padding: 10px 20px;
+        font-size: 16px;
+        background: #e74c3c;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+
+      .reset-btn:hover {
+        background: #c0392b;
+      }
+
+      .prenda-btn {
+        background: #f39c12;
+        color: white;
+        border: none;
+      }
+
+      .prenda-btn:hover {
+        background: #d68910;
+      }
+    </style>
+  </head>
+  <body>
+    <img src="logo2.png" height="150" width="230" />
+    <p>Gincana - Controle de pontos</p>
+    <div class="container">
+      <!-- TIME A -->
+      <div class="team" id="teamA">
+        <h2>Time A</h2>
+        <div class="score" id="scoreA">0</div>
+        <div class="pergunta">Pergunta: <span id="questionA">1</span></div>
+        <div class="buttons">
+          <button onclick="addPoints('A', 0)">+0</button>
+          <button onclick="addPoints('A', 5)">+5</button>
+          <button onclick="addPoints('A', 10)">+10</button>
+          <button class="prenda-btn" onclick="addPrenda('A')">
+            🎁 Prenda +3
+          </button>
+        </div>
+        <div class="history" id="historyA"></div>
+      </div>
+
+      <!-- TIME B -->
+      <div class="team" id="teamB">
+        <h2>Time B</h2>
+        <div class="score" id="scoreB">0</div>
+        <div class="pergunta">Pergunta: <span id="questionB">1</span></div>
+        <div class="buttons">
+          <button onclick="addPoints('B', 0)">+0</button>
+          <button onclick="addPoints('B', 5)">+5</button>
+          <button onclick="addPoints('B', 10)">+10</button>
+          <button class="prenda-btn" onclick="addPrenda('B')">
+            🎁 Prenda +3
+          </button>
+        </div>
+        <div class="history" id="historyB"></div>
+      </div>
+    </div>
+
+    <button class="reset-btn" onclick="resetGame()">Zerar Tudo</button>
+
+    <script>
+      // Inicialização dos dados com localStorage
+      let data = {
+        A: {
+          score: parseInt(localStorage.getItem("scoreA")) || 0,
+          question: parseInt(localStorage.getItem("questionA")) || 1,
+          history: JSON.parse(localStorage.getItem("historyA")) || [],
+        },
+        B: {
+          score: parseInt(localStorage.getItem("scoreB")) || 0,
+          question: parseInt(localStorage.getItem("questionB")) || 1,
+          history: JSON.parse(localStorage.getItem("historyB")) || [],
+        },
+      };
+
+      // Atualiza a interface
+      function updateUI() {
+        document.getElementById("scoreA").innerText = data.A.score;
+        document.getElementById("scoreB").innerText = data.B.score;
+        document.getElementById("questionA").innerText = data.A.question;
+        document.getElementById("questionB").innerText = data.B.question;
+
+        document.getElementById("historyA").innerHTML = data.A.history
+          .map((h) => `<div>${h}</div>`)
+          .join("");
+        document.getElementById("historyB").innerHTML = data.B.history
+          .map((h) => `<div>${h}</div>`)
+          .join("");
+      }
+
+      // Salva os dados no localStorage
+      function saveData() {
+        localStorage.setItem("scoreA", data.A.score);
+        localStorage.setItem("scoreB", data.B.score);
+        localStorage.setItem("questionA", data.A.question);
+        localStorage.setItem("questionB", data.B.question);
+        localStorage.setItem("historyA", JSON.stringify(data.A.history));
+        localStorage.setItem("historyB", JSON.stringify(data.B.history));
+      }
+
+      // Adiciona pontos e avança a pergunta
+      function addPoints(team, points) {
+        const t = data[team];
+        t.score += points;
+        t.history.push(
+          `Pergunta ${t.question}: +${points} ponto${points > 1 ? "s" : ""}`
+        );
+        t.question++;
+        saveData();
+        updateUI();
+      }
+
+      // Botão de Prenda (+3 pontos, sem alterar a pergunta)
+      function addPrenda(team) {
+        const t = data[team];
+        t.score += 3;
+        t.history.push(`🎁 Prenda: +3 pontos`);
+        saveData();
+        updateUI();
+      }
+
+      // Reset total
+      function resetGame() {
+        if (confirm("Deseja zerar todas as pontuações e histórico?")) {
+          data = {
+            A: { score: 0, question: 1, history: [] },
+            B: { score: 0, question: 1, history: [] },
+          };
+          saveData();
+          updateUI();
+        }
+      }
+
+      // Atualiza ao carregar
+      updateUI();
+    </script>
+  </body>
+</html>
